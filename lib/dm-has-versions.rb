@@ -8,7 +8,7 @@ if defined?(Merb::Plugins)
   
   Merb::BootLoader.before_app_loads do
     # require code that must be loaded before the application
-    require 'dm-has-version/has/versions'
+    require 'dm-has-versions/has/versions'
     DataMapper::Model.append_extensions DataMapper::Has::Versions
   end
   

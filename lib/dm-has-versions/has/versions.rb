@@ -38,7 +38,7 @@ module DataMapper
         end
 
         self.after :update do |result|
-          if result && dirty_attributes.except(*ignores).present?
+          if result && !dirty_attributes.except(*ignores).empty?
             return result if pending_version_attributes.empty?
             attributes = self.attributes.merge(pending_version_attributes)
             original_key = "#{self.class.storage_name.singular}_id"
