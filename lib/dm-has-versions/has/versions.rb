@@ -1,6 +1,8 @@
 module DataMapper
   module Has
     module Versions
+      class RevertError < StandardError; end
+
       def has_versions(options = {})
         ignores = [options[:ignore]].flatten.compact.map do |ignore|
           properties[ignore.to_s.intern]
@@ -39,12 +41,17 @@ module DataMapper
 
         self.after :update do |result|
           if result && !dirty_attributes.except(*ignores).empty?
-            return result if pending_version_attributes.empty?
+            break result if pending_version_attributes.empty?
             attributes = self.attributes.merge(pending_version_attributes)
             original_key = "#{self.class.storage_name.singular}_id"
             attributes[original_key.intern] = self.id
-            self.class::Version.create(attributes.except(:id))
+            version, latest = self.version, self.latest?
+            transaction do
+              self.revert_to!(version) unless latest
+              self.class::Version.create(attributes.except(:id))
+            end
             self.pending_version_attributes.clear
+            @version = nil
           end
 
           result
@@ -78,24 +85,43 @@ module DataMapper
           version.all(original_key => self.id, :order => [:id.asc])
         end
 
+        def latest?
+          version == versions.size
+        end
+
         def version
-          versions.size
+          @version ||= versions.size
+        end
+
+        def version=(version)
+          if target = versions.first(:offset => version)
+            self.properties.each do |property|
+              next if property.key?
+              name = property.name
+              self.attribute_set(name, target.attribute_get(name))
+            end
+            @version = version
+          end
+          !!target
+        end
+
+        def revert_to!(version)
+          self.version = version
+          pending_version_attributes.clear
+          raise RevertError unless save
+          target_id = versions[version].id
+          versions.all(:id.gte => target_id).destroy!
         end
 
         def revert_to(version)
-          if target = versions.first(:offset => version)
-            transaction do
-              self.properties.each do |property|
-                next if property.key?
-                name = property.name
-                self.attribute_set(name, target.attribute_get(name))
-              end
-              pending_version_attributes.clear
-              return false unless save
-              versions.all(:id.gte => target.id).destroy!
-            end
-          end
-          !!target
+          transaction{revert_to!(version)}
+          true
+        rescue RevertError
+          false
+        end
+
+        def revert
+          revert_to(version) or raise RevertError
         end
       end
     end

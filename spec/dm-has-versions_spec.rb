@@ -67,6 +67,25 @@ describe "dm-has-versions" do
         @story.version.should == 0
         @story.title.should == "test-1"
       end
+
+      it "should be set version" do
+        @story.title.should == "test-4"
+        @story.version.should == 3
+        @story.dirty_attributes[Story.title].should be_nil
+        @story.version = 1
+        @story.version.should == 1
+        @story.title.should == "test-2"
+        @story.dirty_attributes[Story.title].should_not be_nil
+      end
+
+      it "should revert to current version" do
+        @story.version = 1
+        @story.should_not be_latest
+        @story.save
+        @story.should be_latest
+        @story.title.should == "test-2"
+        @story.dirty_attributes[Story.title].should be_nil
+      end
     end
   end
 end
