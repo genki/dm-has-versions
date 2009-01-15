@@ -57,6 +57,11 @@ module DataMapper
           result
         end
 
+        self.after :destroy do |result|
+          self.versions.destroy! if result
+          result
+        end
+
         include DataMapper::Has::Versions::InstanceMethods
       end
 

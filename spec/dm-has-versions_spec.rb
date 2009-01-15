@@ -41,6 +41,12 @@ describe "dm-has-versions" do
       @story.versions.should be_empty
     end
 
+    it "should not generate versions if the story was not modified" do
+      @story.versions.should be_empty
+      @story.save
+      @story.versions.should be_empty
+    end
+
     describe "destory and revert of versions" do
       before do
         @story.update_attributes :title => 'test-2'
@@ -85,6 +91,12 @@ describe "dm-has-versions" do
         @story.should be_latest
         @story.title.should == "test-2"
         @story.dirty_attributes[Story.title].should be_nil
+      end
+
+      it "should destroy all versions if the story was dstroyed" do
+        @story.versions.should_not be_empty
+        @story.destroy
+        Story::Version.all(:story_id => @story.id).should be_empty
       end
     end
   end
