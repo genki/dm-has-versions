@@ -2,7 +2,9 @@ module DataMapper
   module Has
     module Versions
       def has_versions(options = {})
-        ignore = options[:ignore]
+        ignores = [options[:ignore]].flatten.compact.map do |ignore|
+          properties[ignore.to_s.intern]
+        end
 
         class << self; self end.class_eval do
           define_method :const_missing do |name|
@@ -36,7 +38,7 @@ module DataMapper
         end
 
         self.after :update do |result|
-          if result && dirty_attributes.except(*ignore).present?
+          if result && dirty_attributes.except(*ignores).present?
             attributes = self.attributes.merge(pending_version_attributes)
             original_key = "#{self.class.storage_name.singular}_id"
             attributes[original_key.intern] = self.id

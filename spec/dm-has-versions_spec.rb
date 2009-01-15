@@ -34,5 +34,28 @@ describe "dm-has-versions" do
       @story.update_attributes :title => 'test-3'
       @story.versions.size.should == 2
     end
+
+    it "should not generate versions on update of ignoring properties" do
+      @story.versions.should be_empty
+      @story.update_attributes :updated_at => Time.now
+      @story.versions.should be_empty
+    end
+
+    describe "destory of versions" do
+      before do
+        @story.update_attributes :title => 'test-2'
+        @story.update_attributes :title => 'test-3'
+        @story.update_attributes :title => 'test-4'
+      end
+
+      it "should be tested on 3 versions" do
+        @story.versions.count.should == 3
+      end
+
+      it "should emptyfy by calling destroy!" do
+        @story.versions.destroy!
+        @story.versions.should be_empty
+      end
+    end
   end
 end
