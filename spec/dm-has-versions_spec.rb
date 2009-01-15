@@ -98,6 +98,17 @@ describe "dm-has-versions" do
         @story.destroy
         Story::Version.all(:story_id => @story.id).should be_empty
       end
+
+      it "should keep child_models while version control" do
+        @story.comments.create :body => "Hey, maiha!"
+        @story.comments.count.should == 1
+        story = Story.get(@story.id)
+        story.version.should == 3
+        story.version = 1
+        story.title.should == 'test-2'
+        story.comments.should_not be_empty
+        story.comments.last.body.should == "Hey, maiha!"
+      end
     end
   end
 end
