@@ -39,6 +39,7 @@ module DataMapper
 
         self.after :update do |result|
           if result && dirty_attributes.except(*ignores).present?
+            return result if pending_version_attributes.empty?
             attributes = self.attributes.merge(pending_version_attributes)
             original_key = "#{self.class.storage_name.singular}_id"
             attributes[original_key.intern] = self.id
@@ -74,7 +75,27 @@ module DataMapper
         def versions
           version = self.class.const_get("Version")
           original_key = "#{self.class.storage_name.singular}_id".intern
-          version.all(original_key => self.id)
+          version.all(original_key => self.id, :order => [:id.asc])
+        end
+
+        def version
+          versions.size
+        end
+
+        def revert_to(version)
+          if target = versions.first(:offset => version)
+            transaction do
+              self.properties.each do |property|
+                next if property.key?
+                name = property.name
+                self.attribute_set(name, target.attribute_get(name))
+              end
+              pending_version_attributes.clear
+              return false unless save
+              versions.all(:id.gte => target.id).destroy!
+            end
+          end
+          !!target
         end
       end
     end

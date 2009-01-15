@@ -41,7 +41,7 @@ describe "dm-has-versions" do
       @story.versions.should be_empty
     end
 
-    describe "destory of versions" do
+    describe "destory and revert of versions" do
       before do
         @story.update_attributes :title => 'test-2'
         @story.update_attributes :title => 'test-3'
@@ -50,11 +50,22 @@ describe "dm-has-versions" do
 
       it "should be tested on 3 versions" do
         @story.versions.count.should == 3
+        @story.version.should == 3
       end
 
       it "should emptyfy by calling destroy!" do
         @story.versions.destroy!
         @story.versions.should be_empty
+      end
+
+      it "should revert stories" do
+        @story.title.should == "test-4"
+        @story.revert_to(2).should be_true
+        @story.title.should == "test-3"
+        @story.versions.should be_present
+        @story.revert_to(0).should be_true
+        @story.version.should == 0
+        @story.title.should == "test-1"
       end
     end
   end
