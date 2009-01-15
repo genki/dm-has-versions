@@ -2,7 +2,7 @@ module DataMapper
   module Has
     module Versions
       def has_versions(options = {})
-        on = options[:on]
+        ignore = options[:ignore]
 
         class << self; self end.class_eval do
           define_method :const_missing do |name|
@@ -12,11 +12,9 @@ module DataMapper
             if name == :Version
               properties.each do |property|
                 options = property.options
-                options[:key] = true if
-                  property.name == on || options[:serial] == true
-                options[:serial] = false
                 model.property property.name, property.type, options
               end
+              model.belongs_to self.storage_name.singular.intern
 
               self.const_set("Version", model)
             else
@@ -38,9 +36,11 @@ module DataMapper
         end
 
         self.after :update do |result|
-          if result && dirty_attributes.has_key?(properties[on])
-            self.class::Version.create(
-              self.attributes.merge(pending_version_attributes))
+          if result && dirty_attributes.except(*ignore).present?
+            attributes = self.attributes.merge(pending_version_attributes)
+            original_key = "#{self.class.storage_name.singular}_id"
+            attributes[original_key.intern] = self.id
+            self.class::Version.create(attributes.except(:id))
             self.pending_version_attributes.clear
           end
 
@@ -70,13 +70,9 @@ module DataMapper
         # --
         # @return <Collection>
         def versions
-          query = {}
           version = self.class.const_get("Version")
-          self.class.key.zip(self.key) do |property, value|
-            query[property.name] = value
-          end
-          query.merge(:order => version.key.collect { |key| key.name.desc })
-          version.all(query)
+          original_key = "#{self.class.storage_name.singular}_id".intern
+          version.all(original_key => self.id)
         end
       end
     end
