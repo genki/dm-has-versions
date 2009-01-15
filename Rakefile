@@ -6,10 +6,10 @@ require 'merb-core/tasks/merb'
 
 GEM_NAME = "dm-has-versions"
 GEM_VERSION = "0.0.1"
-AUTHOR = "Your Name"
-EMAIL = "Your Email"
-HOMEPAGE = "http://merbivore.com/"
-SUMMARY = "Merb plugin that provides ..."
+AUTHOR = "Genki Takiuchi"
+EMAIL = "genki@s21g.com"
+HOMEPAGE = "http://blog.s21g.com/genki"
+SUMMARY = "Merb plugin that provides version control for DataMapper models."
 
 spec = Gem::Specification.new do |s|
   s.rubyforge_project = 'merb'

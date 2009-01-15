@@ -1,4 +1,5 @@
 dm-has-versions
 ===============
 
-A plugin for the Merb framework that provides ...
+A plugin for the Merb framework that provides version control for DataMapper
+models.
