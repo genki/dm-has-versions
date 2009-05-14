@@ -4,13 +4,14 @@ module DataMapper
       class RevertError < StandardError; end
 
       def has_versions(options = {})
+        storage_name = Extlib::Inflection.tableize(name + "Version")
+
         ignores = [options[:ignore]].flatten.compact.map do |ignore|
           properties[ignore.to_s.intern]
         end
 
         class << self; self end.class_eval do
           define_method :const_missing do |name|
-            storage_name = Extlib::Inflection.tableize(self.name + "Version")
             model = DataMapper::Model.new(storage_name)
 
             if name == :Version
@@ -25,6 +26,10 @@ module DataMapper
               super(name)
             end
           end
+        end
+
+        if options[:revision] != false
+          ignores << property(:revision, Integer, :unique_index => true)
         end
 
         self.after_class_method :auto_migrate! do
@@ -66,6 +71,17 @@ module DataMapper
       end
 
       module InstanceMethods
+        def self.included(base)
+          base.class_eval do
+            def revision=(revision)
+              if target = versions.get(revision)
+                copy(target)
+                self.attribute_set :revision, revision
+              end
+              !!target
+            end
+          end
+        end
         ##
         # Returns a hash of original values to be stored in the
         # versions table when a new version is created. It is
@@ -100,14 +116,14 @@ module DataMapper
 
         def version=(version)
           if target = versions.first(:offset => version)
-            self.properties.each do |property|
-              next if property.key?
-              name = property.name
-              self.attribute_set(name, target.attribute_get(name))
-            end
+            copy(target)
             @version = version
           end
           !!target
+        end
+
+        def revisions
+          versions.all(:order => [:id.asc]).map(&:id)
         end
 
         def revert_to!(version)
@@ -127,6 +143,15 @@ module DataMapper
 
         def revert
           revert_to(version) or raise RevertError
+        end
+
+      private
+        def copy(target)
+          self.properties.each do |property|
+            next if property.key?
+            name = property.name
+            self.attribute_set(name, target.attribute_get(name))
+          end
         end
       end
     end

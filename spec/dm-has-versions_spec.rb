@@ -109,6 +109,37 @@ describe "dm-has-versions" do
         story.comments.should_not be_empty
         story.comments.last.body.should == "Hey, maiha!"
       end
+
+      it "should have revision methods" do
+        @story.should be_respond_to(:revision)
+        @story.revision.should be_nil
+      end
+
+      it "should return revision numbers" do
+        @story.should be_respond_to(:revisions)
+        revisions = @story.revisions
+        revisions.should be_a(Array)
+        revisions.should_not be_empty
+        revisions.first.should be_a(Integer)
+        revisions.should == revisions.sort
+      end
+
+      it "should be able to set revision" do
+        revisions = @story.revisions
+        last_title = @story.title
+        proc do
+          @story.save.should be_true
+        end.should_not change(Story::Version, :count)
+        proc do
+          @story.title = "foo01"
+          @story.save.should be_true
+        end.should change(Story::Version, :count)
+        @story.should_not be_dirty
+        @story.revision = @story.revisions.last
+        @story.should be_dirty
+        @story.title.should_not == "foo01"
+        @story.title.should == last_title
+      end
     end
   end
 end
