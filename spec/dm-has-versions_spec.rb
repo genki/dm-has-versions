@@ -140,6 +140,18 @@ describe "dm-has-versions" do
         @story.title.should_not == "foo01"
         @story.title.should == last_title
       end
+
+      it "should be converted from version object" do
+        version = @story.versions.last
+        version.should be_a(Story::Version)
+        version.should be_respond_to(:to_story)
+        story = version.to_story
+        story.should be_a(Story)
+        story.attributes.each do |key, value|
+          next if key == :id
+          version.attributes[key].should == value
+        end
+      end
     end
   end
 end

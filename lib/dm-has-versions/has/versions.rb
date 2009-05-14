@@ -4,6 +4,8 @@ module DataMapper
       class RevertError < StandardError; end
 
       def has_versions(options = {})
+        original_class = self
+        original_name = name.snake_case
         storage_name = Extlib::Inflection.tableize(name + "Version")
 
         ignores = [options[:ignore]].flatten.compact.map do |ignore|
@@ -20,6 +22,12 @@ module DataMapper
                 model.property property.name, property.type, options
               end
               model.belongs_to self.storage_name.singular.intern
+
+              model.class_eval do
+                define_method("to_#{original_name}") do
+                  original_class.new.tap{|object| object.send :copy, self}
+                end
+              end
 
               self.const_set("Version", model)
             else
