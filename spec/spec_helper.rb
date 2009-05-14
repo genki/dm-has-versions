@@ -16,7 +16,7 @@ Merb.start_environment(
   :adapter      => 'runner',
   :environment  => ENV['MERB_ENV'] || 'test',
   :merb_root    => File.dirname(__FILE__) / 'fixture',
-  :log_file     => File.dirname(__FILE__) / "merb_test.log"
+  :log_file     => File.dirname(__FILE__) / "../merb_test.log"
 )
 DataMapper.setup(:default, "sqlite3::memory:")
 

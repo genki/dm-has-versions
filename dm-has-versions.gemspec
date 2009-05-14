@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   s.description = %q{Merb plugin that provides version control for DataMapper models.}
   s.email = %q{genki@s21g.com}
   s.extra_rdoc_files = ["README", "LICENSE", "TODO"]
-  s.files = ["LICENSE", "README", "Rakefile", "TODO", "lib/dm-has-versions", "lib/dm-has-versions/has", "lib/dm-has-versions/has/versions.rb", "lib/dm-has-versions/merbtasks.rb", "lib/dm-has-versions.rb", "spec/dm-has-versions_spec.rb", "spec/fixture", "spec/fixture/app", "spec/fixture/app/models", "spec/fixture/app/models/comment.rb", "spec/fixture/app/models/story.rb", "spec/merb_test.log", "spec/spec.opts", "spec/spec_helper.rb"]
+  s.files = ["LICENSE", "README", "Rakefile", "TODO", "lib/dm-has-versions", "lib/dm-has-versions/has", "lib/dm-has-versions/has/versions.rb", "lib/dm-has-versions/merbtasks.rb", "lib/dm-has-versions.rb", "spec/dm-has-versions_spec.rb", "spec/fixture", "spec/fixture/app", "spec/fixture/app/models", "spec/fixture/app/models/comment.rb", "spec/fixture/app/models/story.rb", "spec/spec.opts", "spec/spec_helper.rb"]
   s.has_rdoc = true
   s.homepage = %q{http://blog.s21g.com/genki}
   s.require_paths = ["lib"]
